@@ -73,6 +73,9 @@ false
 let <Var> := <Exp> in <Exp>
 ```
 ```
+let <Var> := <Exp>;<Var> := <Exp>;...;<Var> := <Exp> in <Exp>
+```
+```
 let
     <Var> := <Exp>
     <Var> := <Exp>
@@ -85,6 +88,9 @@ in
 ### Recursive let expression
 ```
 let rec <Var> := <Exp> in <Exp>
+```
+```
+let rec <Var> := <Exp>;<Var> := <Exp>;...;<Var> := <Exp> in <Exp>
 ```
 ```
 let rec
@@ -109,6 +115,9 @@ if <Exp> then <Exp> else <Exp>
 begin <Exp> end
 ```
 ```
+begin <Exp>;<Exp>;...;<Exp> end
+```
+```
 begin
     <Exp>
     <Exp>
@@ -120,6 +129,9 @@ end
 ### Definition
 ```
 <Var> := <Exp>
+```
+```
+<Var> := <Exp>;<Var> := <Exp>;...;<Var> := <Exp>
 ```
 ```
 <Var> := <Exp>
