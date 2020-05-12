@@ -1,0 +1,3 @@
+a + b := a - b
+print-line("5 + 3 = " || str(5 + 3))
+print-line("Surprise!")

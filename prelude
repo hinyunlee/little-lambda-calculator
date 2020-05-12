@@ -1,0 +1,193 @@
+# Prelude
+
+¬ p := if p then false else true
+p ∧ q := if p then q else p
+p ∨ q := if p then p else q
+p ⇒ q := if p then q else true
+p ⇐ q := q ⇒ p
+p ⇔ q := (p ⇒ q) ∧ (q ⇒ p)
+
+f ∘ g := λx.f(g x)
+
+a ∣ b := a / b = floor (a / b)
+
+a ∈ xs := bool(find (λx.x = a) xs)
+a ∉ xs := ¬(a ∈ xs)
+
+x :: xs := [x . xs]
+
+force x :=
+    let rec
+        force' x := tuple(force(list x)) if tuple? x
+        force' [x . xs] :=
+            begin
+                force' x
+                force' xs
+            end
+        force' x := x
+    in
+        begin
+            force' x
+            x
+        end
+
+force-one-level x :=
+    let rec
+        force' [x . xs] := force' xs
+        force' x := x
+    in
+        begin
+            force' x
+            x
+        end
+
+print := puts ∘ force
+
+print-line x :=
+    begin
+        print x
+        print newline
+    end
+
+#Y f := f (Y f)
+Y := λf.(λx.f (x x)) (λx.f (x x))
+Y* fs := Y (λf. map (λg. g f) fs)
+
+ι i := i :: ι (i + 1)
+iota := ι
+
+|x| := abs x if number? x
+|x| := card x
+
+min xs := min (list xs) if tuple? xs
+min xs := fold-left (λa x. if a > x then x else a) ∞ xs
+
+max xs := max (list xs) if tuple? xs
+max xs := fold-left (λa x. if a < x then x else a) (-∞) xs
+
+card xs :=
+    let rec
+        card' n [_ . xs] := card' (n + 1) xs
+        card' n _ := n
+    in
+        card' 0 xs
+
+exists p := (fold-right (λx a. x ∨ a) false) ∘ map p
+for-all p := (fold-right (λx a. x ∧ a) true) ∘ map p
+
+uncurry f [x . xs] := uncurry (f x) xs
+uncurry f _ := f
+
+curry n f :=
+    let rec
+        curry' 0 x := λy.curry' (n - 1) (y :: x)
+        curry' n x := f (reverse x) if n > 0
+    in
+        curry' n []   
+
+zip [] := []
+zip xss := map head xss :: zip (map tail xss)
+
+identity x := x
+always x y := x
+flip f x y := f y x
+complement f x := ¬(f x)
+
+# List
+
+last [x] := x
+last [x . xs] := last xs
+last xs := xs
+
+without-last [x] := []
+without-last [x . xs] := x :: without-last xs
+without-last x := x
+
+take n [x . xs] := x :: take (n - 1) xs if n > 0
+take _ _ := []
+
+take-while p [] := []
+take-while p [x . xs] := x :: take-while p xs if p x
+take-while p [x . xs] := []
+
+drop n [x . xs] := drop (n - 1) xs if n > 0
+drop n xs := xs
+
+drop-while p [x . xs] := drop-while p xs if p x
+drop-while p xs := xs
+
+nth 1 [x . xs] := x
+nth n [x . xs] := nth (n - 1) xs if n > 1
+
+fold-left f a [x . xs] := fold-left f (f a x) xs
+fold-left f a xs := a
+
+fold-right f a xs := fold-left (flip f) a (reverse xs)
+
+reverse := fold-left (λa x. x :: a) []
+
+map f xs := tuple(map f (list xs)) if tuple? xs
+map f [x . xs] := f x :: map f xs
+map f _ := []
+
+flatmap f [xs . xss] := map f xs || flatmap f xss
+flatmap f _ := []
+
+flatten xss := flatmap identity xss
+
+filter f [] := []
+filter f [x . xs] := x :: filter f xs if f x
+filter f [x . xs] := filter f xs
+
+[x . xs] || ys := x :: xs || ys
+xs || ys := concat xs ys if str? xs
+xs || ys := ys
+
+find p [x . xs] := [x . xs] if p x
+find p [x . xs] := find p xs
+find p xs := []
+
+qsort p [] := []
+qsort p [x . xs] := qsort p (filter (λy. p y x) xs) || [x] || qsort p (filter (λy. ¬(p y x)) xs)
+
+list? [x . xs] := list? xs
+list? [] := true
+list? xs := false
+
+implode := fold-left strcat ""
+
+iterate f x := x :: iterate f (f x)
+
+# Symbols
+
+bell := chr 7
+backspace := chr 8
+tab := chr 9
+newline := chr 10
+vtab := chr 11
+formfeed := chr 12
+return := chr 13
+
+# Math
+
+√ := sqrt
+
+sgn a :=  1 if a > 0
+sgn 0 :=  0
+sgn a := -1 if a < 0
+
+cot x := 1 / tan x
+sec x := 1 / cos x
+csc x := 1 / sin x
+
+arccot x := arctan(1 / x)
+arcsec x := arccos(1 / x)
+arccsc x := arcsin(1 / x)
+
+coth x := 1 / tanh x
+sech x := 1 / cosh x
+csch x := 1 / sinh x
+
+arcoth x := artanh(1 / x)
+arsech x := arcosh(1 / x)
+arcsch x := arsinh(1 / x)

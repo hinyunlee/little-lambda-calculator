@@ -1,0 +1,5 @@
+let
+    a = 3
+    b = 4
+in
+    sqrt(a ↑ 2 + b ↑ 2)

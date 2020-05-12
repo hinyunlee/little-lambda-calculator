@@ -1,0 +1,8 @@
+let *
+    quoted := reify((λx.λy. x ↑ y) 2 3)
+    unquoted := eval quoted
+in
+    begin
+        print-line quoted
+        print-line unquoted
+    end

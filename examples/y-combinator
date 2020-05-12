@@ -1,0 +1,20 @@
+Y := λf.(λx.f(x x))(λx.f(x x))
+
+fac f 0 := 1
+fac f n := n ⋅ f(n - 1)
+
+fib f 0 := 0
+fib f 1 := 1
+fib f n := f(n - 1) + f(n - 2)
+
+print-line(Y fac 10)
+print-line(Y fib 10)
+
+Y* := λfs.Y(λf.map (λg.g f) fs)
+
+feven? [even? odd?] n := if n = 0 then true else odd? (n - 1)
+fodd? [even? odd?] n := if n = 0 then false else even? (n - 1)
+
+[even? odd?] := Y*[feven? fodd?]
+
+print-line(even? 10)

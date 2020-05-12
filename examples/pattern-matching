@@ -1,0 +1,17 @@
+balance ['B' ['T' 'R' ['T' 'R' a x b] y c] z d] := ['T' 'R' ['T' 'B' a x b] y ['T' 'B' c z d]]
+balance ['B' ['T' 'R' a x ['T' 'R' b y c]] z d] := ['T' 'R' ['T' 'B' a x b] y ['T' 'B' c z d]]
+balance ['B' a x ['T' 'R' ['T' 'R' b y c]] z d] := ['T' 'R' ['T' 'B' a x b] y ['T' 'B' c z d]]
+balance ['B' a x ['T' 'R' b y ['T' 'R' c z d]]] := ['T' 'R' ['T' 'B' a x b] y ['T' 'B' c z d]]
+balance [col a x b] = ['T' col a x b]
+
+insert x s :=
+    let *
+        ins 'E' := ['T' 'R' 'E' x 'E']
+        ins ['T' col a y b] := balance [col (ins a) y b] if x < y
+        ins ['T' col a y b] := balance [col a y (inx b)] if x > y
+        ins s := s
+        ['T' _ a y b] := ins s
+    in
+        ['T' 'B' a y b]
+
+# TODO

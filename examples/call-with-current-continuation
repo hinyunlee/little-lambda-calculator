@@ -1,0 +1,9 @@
+let
+    f return := begin return 2; 3 end
+in
+    begin
+        print (f (λx.x))
+        print newline
+        print (call/cc f)
+        print newline
+    end

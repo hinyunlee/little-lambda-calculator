@@ -1,0 +1,5 @@
+sgn a :=  1 if a > 0
+sgn 0 :=  0
+sgn a := -1 if a < 0
+
+sgn 5

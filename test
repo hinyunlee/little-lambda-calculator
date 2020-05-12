@@ -1,0 +1,9 @@
+let fe e o n := n = 0 or o (n - 1)
+and fo e o n := n /= 0 & e (n - 1)
+in print (nth 0 (Y* [fe fo]) 9)
+
+sgn' x := 1 if x > 0
+          0 if x = 0
+          -1 otherwise
+
+sgn'(-1)

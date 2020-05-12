@@ -1,0 +1,8 @@
+fizzbuzz n := "Fizz" if n ∣ 3
+fizzbuzz n := "Buzz" if n ∣ 5
+fizzbuzz n := "FizzBuzz" if (n ∣ 3) ∧ (n ∣ 5)
+fizzbuzz n := str(n)
+
+succ n := n + 1
+
+print-line ((implode ∘ map fizzbuzz ∘ take 100) (iterate succ 1))
