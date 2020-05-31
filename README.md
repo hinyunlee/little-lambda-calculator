@@ -150,8 +150,7 @@ end
 +, -, ∨
 <, ≤, >, ≥, =, ≠
 ∘ (right-associative)
-λ
-if, let, begin
+λ, if, let, begin
 ```
 
 ## Examples

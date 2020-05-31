@@ -36,7 +36,7 @@ def callcc(c, e, k, machine):
     return (e.exp, e, Arg(Kont(k), e, k))
 
 def cond(x):
-    if x is None or x is False:
+    if x is NIL or x is FALSE:
         return Lambda(Lambda(Var(1)))
     else:
         return Lambda(Lambda(Var(2)))
@@ -191,6 +191,7 @@ def extend(env=None):
         ('_=_', bind(2, lambda x, y: x == y)),
         ('_≠_', bind(2, lambda x, y: x != y)),
         ('abs', bind(1, abs)),
+        ('len', bind(1, len)),
         ('call/cc', Lambda(callcc)),
         ('strcat', bind(2, lambda x, y: ''.join((x, y)))),
         ('format', bind(1, lambda x: p.format(x))),
@@ -202,6 +203,7 @@ def extend(env=None):
         ('pair?', bind(1, lambda x: isinstance(x, Pair))),
         ('list', bind(1, lambda x: ls(*x))),
         ('tuple', Proc(Apply(Proc(toTuple), Apply(Global('force-one-level'), Var(1))))),
+        ('make-tuple', bind(1, lambda n: [NIL]*n)),
         ('int?', bind(1, isInt)),
         ('rational?', bind(1, isReal)),
         ('real?', bind(1, isReal)),
@@ -234,7 +236,6 @@ def extend(env=None):
         ('exit', Lambda(exit)),
         ('label', Proc(Lambda(label))),
         ('error', bind(1, error)),
-
 ##        ('Y', Y),
 ##        ('map', MAP),
 ##        ('Y*', Y_POLY),

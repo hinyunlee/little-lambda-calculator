@@ -49,7 +49,7 @@ in
     even? 10
         """
         result = self.readEvalPrint(x)
-        self.assertEqual(result, True)
+        self.assertEqual(result, data.TRUE)
 
     def test_quoting(self):
         x = """
@@ -134,6 +134,27 @@ in
         """
         result = self.readEvalPrint(x)
         self.assertEqual(result, 6)
+
+    def test_force(self):
+        x = """force 1"""
+        result = self.readEvalPrint(x)
+        self.assertEqual(result, 1)
+
+        x = """force [1 2 3]"""
+        result = self.readEvalPrint(x)
+        self.assertEqual(result, data.Pair(1, data.Pair(2, data.Pair(3, data.NIL))))
+
+        x = """force (1, 2, 3)"""
+        result = self.readEvalPrint(x)
+        self.assertEqual(result, [1, 2, 3])
+
+        x = """force [(1, 2) (3, 4)]"""
+        result = self.readEvalPrint(x)
+        self.assertEqual(result, data.Pair([1, 2], data.Pair([3, 4], data.NIL)))
+
+        x = """force ([1 2], [3 4])"""
+        result = self.readEvalPrint(x)
+        self.assertEqual(result, [data.Pair(1, data.Pair(2, data.NIL)), data.Pair(3, data.Pair(4, data.NIL))])
 
 if __name__ == '__main__':
     unittest.main()

@@ -19,7 +19,7 @@ class Token:
 
 genLineLengths = lambda s: tuple(map(len, s.split('\n')))
 
-def matchNestedGrouping(s, lpat, ipat, rpat, fi, i):
+def matchNestedGrouping(lpat, ipat, rpat, fi, s, i):
     """Match nested grouping and return (start index, end index) if a match is found.
     Returns None if match failed.
     lpat -- Opening pattern.
@@ -42,11 +42,11 @@ def matchNestedGrouping(s, lpat, ipat, rpat, fi, i):
     
     return None
 
-def matchBlockComment(s, o, c, i):
+def matchBlockComment(o, c, s, i):
     lpat = re.compile(o)
     rpat = re.compile(c)
-    fi = lambda innerMatch: matchBlockComment(s, o, c, innerMatch.start())[1]
-    m = matchNestedGrouping(s, lpat, lpat, rpat, fi, i)
+    fi = lambda innerMatch: matchBlockComment(o, c, s, innerMatch.start())[1]
+    m = matchNestedGrouping(lpat, lpat, rpat, fi, s, i)
 
     if m:
         return m
@@ -54,14 +54,14 @@ def matchBlockComment(s, o, c, i):
         raise Exception('Unmatched block comment', o, c, findDocPos(s, i))
 
 def processBlockComment(o, c, s, i, m):
-    end = matchBlockComment(s, o, c, i)[1]
+    end = matchBlockComment(o, c, s, i)[1]
     return Token('BlockComment', s[i:end], i, end)
 
-def matchString(s, q, i):
-    lpat = re.compile(q)
+def matchString(q, s, i):
+    qpat = re.compile(q)
     ipat = re.compile(q + q)  # Double-quoting escapes a quote
     fi = lambda innerMatch: innerMatch.end()
-    m = matchNestedGrouping(s, lpat, ipat, lpat, fi, i)
+    m = matchNestedGrouping(qpat, ipat, qpat, fi, s, i)
 
     if m:
         return m
@@ -69,7 +69,7 @@ def matchString(s, q, i):
         raise Exception('Unmatched string', q, findDocPos(s, i))
 
 def processString(s, i, m):
-    end = matchString(s, m.group(), i)[1]
+    end = matchString(m.group(), s, i)[1]
     return Token('String', s[i:end], i, end)
 
 def findDocPos(s, i):

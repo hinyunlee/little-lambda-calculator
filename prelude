@@ -16,18 +16,32 @@ a ∉ xs := ¬(a ∈ xs)
 
 x :: xs := [x . xs]
 
+tap f x := begin f x; x end
+
 force x :=
     let rec
-        force' x := tuple(force(list x)) if tuple? x
-        force' [x . xs] :=
+        force-tuple x 0 := x
+        force-tuple x i :=
             begin
-                force' x
-                force' xs
+                force (x i)
+                force-tuple x (i - 1)
             end
-        force' x := x
+
+        force-list [x . xs] :=
+            begin
+                force x
+                force xs
+            end
+
+        force-list x := x
     in
         begin
-            force' x
+            if pair? x then
+                force-list x
+            else if tuple? x then
+                force-tuple x (card x)
+            else
+                x
             x
         end
 
@@ -65,6 +79,7 @@ min xs := fold-left (λa x. if a > x then x else a) ∞ xs
 max xs := max (list xs) if tuple? xs
 max xs := fold-left (λa x. if a < x then x else a) (-∞) xs
 
+card xs := len xs if tuple? xs
 card xs :=
     let rec
         card' n [_ . xs] := card' (n + 1) xs
@@ -126,7 +141,6 @@ fold-right f a xs := fold-left (flip f) a (reverse xs)
 
 reverse := fold-left (λa x. x :: a) []
 
-map f xs := tuple(map f (list xs)) if tuple? xs
 map f [x . xs] := f x :: map f xs
 map f _ := []
 

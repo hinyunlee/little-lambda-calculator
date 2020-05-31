@@ -5,41 +5,33 @@ TRUE = True
 FALSE = False
 NIL = None
 
-sgn = lambda x: -1 if x < 0 else 0 if x == 0 else 1
-
 class Complex:
     def __init__(self, real=0, imaginary=0):
-        """Complex number supporting arbitrary types.
-        Might break if real or imaginary are complex numbers.
-        """
-        self.real = real
-        self.imaginary = imaginary
+        """Complex fractions."""
+        self.real = Fraction(real)
+        self.imaginary = Fraction(imaginary)
 
     def __eq__(self, other):
-        (x, y) = (self.real, self.imaginary)
-
         if isinstance(other, Complex):
             (u, v) = (other.real, other.imaginary)
         else:
             (u, v) = (other, 0)
 
-        return x == u and y == v
+        return self.real == u and self.imaginary == v
 
     def __abs__(self):
-        return math.sqrt(self.real**2 + self.imaginary**2)
+        return Fraction(math.sqrt(self.real**2 + self.imaginary**2))
 
     def __neg__(self):
         return Complex(-self.real, -self.imaginary)
 
     def __add__(self, other):
-        (x, y) = (self.real, self.imaginary)
-
         if isinstance(other, Complex):
             (u, v) = (other.real, other.imaginary)
         else:
             (u, v) = (other, 0)
 
-        return Complex(x + u, y + v)
+        return Complex(self.real + u, self.imaginary + v)
 
     def __radd__(self, other):
         return self.__add__(other)
@@ -53,7 +45,7 @@ class Complex:
     def __mul__(self, other):
         """(x + y*i)*(u + v*i) = (x*u - y*v) + (x*v + y*u)*i"""
         (x, y) = (self.real, self.imaginary)
-        
+
         if isinstance(other, Complex):
             (u, v) = (other.real, other.imaginary)
         else:
@@ -65,9 +57,9 @@ class Complex:
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        """(u + v*i)/(x + y*i) = (1/(x**2 + y**2))*((u*x + v*y) + (v*x - u*y)*i)"""
+        """(u + v*i)/(x + y*i) = 1/(x**2 + y**2)*((u*x + v*y) + (v*x - u*y)*i)"""
         (u, v) = (self.real, self.imaginary)
-        
+
         if isinstance(other, Complex):
             (x, y) = (other.real, other.imaginary)
         else:
@@ -76,21 +68,27 @@ class Complex:
         d = x**2 + y**2
         return Complex(Fraction(u*x + v*y, d), Fraction(v*x - u*y, d))
 
-    def __pow__(self, n):
-        # TODO: Complex exponents
-        if isinstance(n, Complex):
-            raise Exception('Not yet implemented')
+    def __pow__(self, other):
+        (a, b) = (self.real, self.imaginary)
 
-        a = self.__abs__()**n
-        b = math.atan2(self.real, self.imaginary)*n
-        return Complex(a*math.cos(b), a*math.sin(b))
+        if isinstance(other, Complex):
+            (c, d) = (other.real, other.imaginary)
+        else:
+            (c, d) = (other, 0)
+
+        rSquared = a**2 + b**2
+        r = Fraction(math.sqrt(rSquared))
+        theta = Fraction(math.atan2(a, b))
+        return r**c*Fraction(math.exp(-d*theta))*Complex(math.cos(c*theta + Fraction(d*math.log(rSquared))/2), math.sin(c*theta + Fraction(d*math.log(rSquared))/2))
+
+    def __rpow__(self, other):
+        if isinstance(other, Complex):
+            return other.__pow__(self)
+        else:
+            return Complex(other).__pow__(self)
 
     def __repr__(self):
-        if self.real == 0:
-            return '{}i'.format(self.imaginary)
-        else:
-            sgnStr = lambda x: '+' if x >= 0 else '-'
-            return '{}{}{}i'.format(self.real, sgnStr(self.imaginary), abs(self.imaginary))
+        return '{}{}{}i'.format(self.real, '+' if self.imaginary >= 0 else '', self.imaginary)
 
     def __complex__(self):
         return complex(self.real, self.imaginary)
@@ -182,5 +180,3 @@ class Set:
 
     def __repr__(self):
         return '{{{}}}'.format(', '.join(map(repr, self.xs)))
-
-    # TODO

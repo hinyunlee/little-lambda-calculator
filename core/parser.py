@@ -169,8 +169,8 @@ class Parser:
 
         if t1.value in kws:
             return (t1.value, j)
-
-        return (None, i)
+        else:
+            return (None, i)
 
     def consumeKeyword(self, keyword, i, lhs=None, op=None, rws=EMPTY_SET):
         return self.consume(partial(self.parseKeyword, keyword), i)
@@ -196,11 +196,7 @@ class Parser:
         name = token.name
         value = token.value
 
-        if value in rws:
-            return (None, i)
-        elif name == 'Identifier':
-            return (self.constants.get(value) or ast.Var(value), j)
-        elif name == 'Number':
+        if name == 'Number':
             def parseNumber(value):
                 if value[-1] in ('i', 'j'):
                     return Complex(0, parseNumber(value[:-1]))
@@ -216,7 +212,7 @@ class Parser:
             q = value[0]
             return (ast.String(value[1:-1].replace(q*2, q)), j)
         else:
-            return (ast.Var(value), j)
+            return (self.constants.get(value) or ast.Var(value), j)
 
     def parseLambda(self, i, lhs, op=None, rws=EMPTY_SET):
         """'λ' Term* '.' Exp"""
@@ -254,7 +250,7 @@ class Parser:
         (bs, i) = self.repeat(partial(parseAndBinding, seps), i, None, op, rws)
         return ([b, *bs], i)
 
-    def getScopeAst(self, t):
+    def getScopeAST(self, t):
         if t is None:
             return ast.Let
         elif t == 'rec':
@@ -273,14 +269,14 @@ class Parser:
         (bs, i)  = self.parseBindings(('and', ',', ';', '\n'), i, None, None, frozenset(['in']))
         (_, i)   = self.consumeKeyword('in', i)
         (exp, i) = self.consumeExp(i, None, op, rws)
-        return (self.getScopeAst(t)(bs, exp), i)
+        return (self.getScopeAST(t)(bs, exp), i)
 
     def parseWhere(self, i, lhs, op=None, rws=EMPTY_SET):
         """lhs 'where' ('rec' | '*')? Exp (':=' | '=') Exp (('and' | ',') Exp (':=' | '=') Exp)*"""
-        (_, i)   = self.consumeKeyword('where', i)
-        (t, i)   = self.parseKeyword(('rec', '*'), i)
-        (bs, i)  = self.parseBindings(('and', ','), i, None, op, rws)
-        return (self.getScopeAst(t)(bs, lhs), i)
+        (_, i)  = self.consumeKeyword('where', i)
+        (t, i)  = self.parseKeyword(('rec', '*'), i)
+        (bs, i) = self.parseBindings(('and', ','), i, None, op, rws)
+        return (self.getScopeAST(t)(bs, lhs), i)
 
     def parseIf(self, i, lhs, op=None, rws=EMPTY_SET):
         """'if' Exp 'then' Exp ('else' Exp)? | lhs 'if' Exp ('else' Exp)?"""
@@ -380,7 +376,7 @@ class Parser:
         """kws Exp"""
         (_, i)   = self.consumeKeyword(kws, i)
         (exp, i) = self.consumeExp(i, None, op, rws)
-        return (ast.PrefixUnOp(ast.Var(f), exp), i)
+        return (ast.PrefixOp(ast.Var(f), exp), i)
 
     def parseInfixOp(self, kws, f, i, lhs, op=None, rws=EMPTY_SET):
         """lhs kws Exp"""
@@ -393,17 +389,16 @@ class Parser:
         if lhs is None:
             (token, i) = self.getNextToken(i)
             raise Exception('Missing left hand side expression', token.name, token.value)
-
-        (_, i) = self.consumeKeyword(kws, i)
-        return (ast.PostfixUnOp(ast.Var(f), lhs), i)
+        else:
+            (_, i) = self.consumeKeyword(kws, i)
+            return (ast.PostfixOp(ast.Var(f), lhs), i)
 
     def parseMatchfixOp(self, kw1, kw2, f, i, lhs, op=None, rws=EMPTY_SET):
         """kw1 Exp? kw2"""
         (_, i)   = self.consumeKeyword(kw1, i)
         (exp, i) = self.parseExp(i, None, None, frozenset([kw2]))
         (_, i)   = self.consumeKeyword(kw2, i)
-        if exp is None: exp = ast.NIL
-        return (ast.MatchfixUnOp(ast.Var(f), exp), i)
+        return (ast.MatchfixOp(ast.Var(f), exp or ast.NIL), i)
 
     def parseQuantifier(self, kw, f, i, lhs, op=None, rws=EMPTY_SET):
         """kw x ∈ A p(x)"""
@@ -428,6 +423,7 @@ class Parser:
         Note: y1, y2, ..., yn are memoized.
         """
         def parseRest(i, lhs, op=None, rws=EMPTY_SET):
+            """op Exp"""
             ops = ('<', '≤', '<=', '=<', '>', '≥', '>=', '=', '≠', '/=')
             rws = rws | frozenset(ops)
             (kw, i)  = self.parseKeyword(ops, i)
@@ -441,15 +437,16 @@ class Parser:
         if len(xs) == 1:
             (kw, rhs) = xs[0]
             return (ast.BinOp(varFromKw(self.opAliases.get(kw, kw)), lhs, rhs), i)
-
-        (kws, exps) = zip(*xs)
-        ops = [varFromKw(self.opAliases.get(kw, kw)) for kw in kws]
-        exps = [lhs, *exps]  # len(exps) = len(ops) + 1
-        xs = [ast.Var('x' + str(i)) for i in range(len(exps))]
-        binOps = [ast.BinOp(op, xs[i], xs[i + 1]) for (i, op) in enumerate(ops)]
-        andVar = ast.Var('_∧_')
-        body = foldr1(lambda lhs, rhs: ast.BinOp(andVar, lhs, rhs), binOps)
-        return (reduce(lambda lhs, rhs: ast.Apply(lhs, rhs), exps, ast.Lambda(xs, body)), i)
+        else:
+            (kws, exps) = zip(*xs)
+            ops = [varFromKw(self.opAliases.get(kw, kw)) for kw in kws]
+            exps = [lhs, *exps]  # len(exps) = len(ops) + 1
+            args = [ast.Var('x' + str(i)) for i in range(len(exps))]
+            binOps = [ast.BinOp(op, args[i], args[i + 1]) for (i, op) in enumerate(ops)]
+            andVar = ast.Var('_∧_')
+            body = foldr1(lambda lhs, rhs: ast.BinOp(andVar, lhs, rhs), binOps)
+            lhs = foldr(ast.Lambda, body, args)
+            return (reduce(lambda lhs, rhs: ast.Apply(lhs, rhs), exps, ast.Lambda(args, body)), i)
 
     def parseTerm(self, i, lhs=None, op=None, rws=EMPTY_SET):
         """Term"""
@@ -540,11 +537,13 @@ class Parser:
         return self.consume(self.parseExp, i, None, op, rws)
 
     def parse(self, tokens):
-        self.tokens = tokens
+        self.tokens = tokens  # FIXME: Ugly
         (exps, i) = self.parseBlock((',', ';', '\n'), 0)
 
         if self.hasNextToken(i):
             (token, _) = self.getNextToken(i)
+            self.tokens = None  # FIXME: Ugly
             raise Exception('Unexpected token', token.name, token.value)
-
-        return ast.Module(exps)
+        else:
+            self.tokens = None  # FIXME: Ugly
+            return ast.Module(exps)

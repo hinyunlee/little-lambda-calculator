@@ -5,8 +5,8 @@ from functools import reduce
 flip = lambda f: lambda x, y: f(y, x)
 foldl = lambda f, a, xs: reduce(f, xs, a)
 foldl1 = lambda f, xs: reduce(f, xs)
-foldr = lambda f, a, xs: reduce(flip(f), reversed(xs), a)
-foldr1 = lambda f, xs: reduce(flip(f), reversed(xs))
+foldr = lambda f, a, xs: reduce(flip(f), reversed(tuple(xs)), a)
+foldr1 = lambda f, xs: reduce(flip(f), reversed(tuple(xs)))
 unnest = lambda xss: [x for xs in xss for x in xs]
 chain = lambda f, xs: [x for xs in [f(x) for x in xs] for x in xs]
 
